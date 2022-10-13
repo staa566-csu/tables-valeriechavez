@@ -1,0 +1,159 @@
+---
+title: "Assignment 4"
+author: "Valerie Chavez"
+date: "2022-10-13"
+output: html_document
+---
+
+
+I am interesting in looking and how different groups of secondary students experienced bullying in the last 3 years. 
+
+Data are from the 2019-20, 2020-21, and 2021-22 school years. And come from 30 states, 782 schools, 203 districts, and over 350K students. 
+
+I want to summarize their responses to the question "Have you been bullied this school year" and further probing into how that bullying occured (physically, verbally, digitally, etc.). These were asked through a series of yes/no questions. As such, I will use a chi-square test o compare their results 
+
+
+
+
+Load libraries 
+```{r}
+library(data.table)
+library(fastDummies)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(DT)
+library("scales")
+```
+
+
+
+```{r}
+results_dem<-read.csv("/Users/valerier/Dropbox (CEP)/YouthTruth/Data and Research/Bullying Data/results_demographics.csv")
+dem_props<-read.csv("/Users/valerier/Dropbox (CEP)/YouthTruth/Data and Research/Bullying Data/dem_props.csv")
+
+
+```
+
+
+```{r}
+#Look at What will need to be Renamed
+names(dem_props)
+dem_props$X
+```
+
+
+
+```{r}
+X<-c("Does not identify as LGBTQ+",
+    "Identifies as LGBTQ+",
+    "Boy/Man",
+    "Girl/Woman",
+    "Non-binary or gender non-confirming",
+    "Prefer to self-describe/identify gender",
+    "Gay or Lesbian",
+    "Heterosexual or straight",
+    "Bisexual",
+    "Identifies another way", 
+    "I am not sure", 
+    "Not transgender",
+    "Transgender",
+    "Does not identify as POC",     
+    "Identifies as POC",
+    "Hispanic or Latina/o/x",
+    "White",
+    "Black or African American",  
+    "American Indian, Alaska Native, or Indigenous",
+    "Asian or Asian American",
+    "Native Hawaiian or Pacific Islander",
+    "Race or ethnicity not included above (optional, please describe)",
+    "Multiracial and/or Multi-ethnic",
+    "Middle Eastern or North African",
+    "5th Grade",    
+    "6th Grade",   
+    "7th Grade",
+    "8th Grade",
+    "9th Grade",
+    "10th Grade",
+    "11th Grade",
+    "12th Grade",
+    "13th Grade",
+    "Other Grade")
+
+
+dem_props$X<-X
+```
+
+```{r}
+#get overall n and prop from results dataframe
+overall<-results_dem[4:37,2:3]
+dem_props<-cbind(dem_props,overall)
+
+#dem_props[,c(2:9,12)]<-percent(as.numeric(unlist(dem_props[,c(2:9,12)])))
+```
+
+Converting to percent
+
+```{r}
+for (i in c(2:9,12)){
+  dem_props[i]<-percent(as.numeric(unlist(dem_props[,i])))
+}
+     
+```
+
+```{r}
+kbl_props<-dem_props%>%
+  select(-"total")%>%
+  kbl(col.names = c("Demographic",
+                    "Yes",
+                    "No",
+                    "IDK",
+                    "Physically",
+                    "Verbally",
+                    "Socially",
+                    "Cyber", 
+                    "Bullying is an Obstacle to Learning",
+                    "Total",
+                    "Overall Proportion"),
+      row.names	=FALSE,
+      digits = 2,
+      caption	="Source:Youth Truth Student Survey")  %>%
+   add_header_above(c(" "=1, "Have you been bullied in school?" = 3, "If so, how?" = 4, " ", "Sample Size"=2))  %>%
+  kable_styling("striped",font_size=12, full_width = TRUE)
+```
+
+
+First iteration. It is not easy to look at 
+```{r}
+kbl_props%>%
+  kable_paper(full_width = FALSE, html_font = "helvetica")
+```
+
+
+```{r}
+tbl_props<-dem_props%>%
+  select(-"total")%>%
+  datatable(colnames = c("Demographic",
+                    "Yes - Bullied",
+                    "No - Bullied",
+                    "IDK - Bullied",
+                    "Physically Bullied",
+                    "Verbally Bullied",
+                    "Socially Bullied",
+                    "Cyber Bullied", 
+                    "Bullying is an Obstacle to Learning",
+                    "Total",
+                    "Overall Proportion"),
+            rownames = FALSE) %>%
+  formatRound(columns = 2:11, 
+              digits = 2)
+```
+
+This one is a bit more user friendly
+```{r}
+tbl_props
+
+```
+
+
+
